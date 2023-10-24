@@ -1,8 +1,58 @@
 import "./style.css";
 
-async function getWeather() {
-  const currentWeatherRequest =
-    "https://api.weatherapi.com/v1/current.json?q=Zagreb&key=295a9156b5ff4bc5ba8112804231910";
+function createWeatherWidget(weatherInfo) {
+  removeElements();
+  const weatherWidget = document.createElement("div");
+  weatherWidget.classList.add("weather-widget");
+  weatherWidget.innerHTML = `    
+  <div class="location-info">
+      <div class="city">${weatherInfo.location.name}, <span class="country">${
+    weatherInfo.location.country
+  }</span></div>
+      <div class="current-time">${new Date().toLocaleDateString("en-gb", {
+        weekday: "long",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+      })}</div>
+  </div>
+  <div class="info">
+      <div class="icon-temp-info">
+          <img class="icon" src="${weatherInfo.current.condition.icon}">
+          <div class="temp">${weatherInfo.current.temp_c} °C</div>
+      </div>
+      <div>
+          <div class="weather-description">${
+            weatherInfo.current.condition.text
+          }</div>
+          <div class="feels-like">
+              Feels like ${weatherInfo.current.feelslike_c} °C
+          </div>
+      </div>
+  </div>`;
+  const body = document.querySelector("body");
+  body.appendChild(weatherWidget);
+}
+
+function removeElements() {
+  const previousWidget = document.querySelector(".weather-widget");
+  const error = document.querySelector(".error");
+  
+  if (previousWidget) previousWidget.remove();
+  if (error) error.remove();
+}
+function showError() {
+  const error = document.createElement("div");
+  error.classList.add("error");
+  error.textContent = "Location not found. Please try again.";
+  const body = document.querySelector("body");
+  body.appendChild(error);
+}
+
+async function getWeather(city) {
+  const currentWeatherRequest = `https://api.weatherapi.com/v1/current.json?q=${city}&key=295a9156b5ff4bc5ba8112804231910`;
 
   async function getWeatherData(request) {
     const response = await fetch(request);
@@ -10,36 +60,17 @@ async function getWeather() {
     return data;
   }
 
+  try {
   const currentWeather = await getWeatherData(currentWeatherRequest);
-  console.log(currentWeather);
-
-  function createWeatherWidget(weatherInfo) {
-    const weatherWidget = document.createElement("div");
-    weatherWidget.classList.add("weather-widget");
-    weatherWidget.innerHTML = `    
-    <div class="location-info">
-        <div class="city">${weatherInfo.location.name} <span class="country">${weatherInfo.location.country}</span></div>
-        <div class="current-time">${weatherInfo.location.localtime}</div>
-    </div>
-    <div class="info">
-        <div >
-            <img class="icon" href="${weatherInfo.current.condition.icon}">
-            <div class="temp">${weatherInfo.current.temp_c}</div>
-        </div>
-        <div>
-            <div class="weather-description">${weatherInfo.current.condition.text}</div>
-            <div class="feels-like">
-                Feels like ${weatherInfo.current.feelslike_c}
-            </div>
-        </div>
-    </div>`;
-
-    const body = document.querySelector("body");
-    body.appendChild(weatherWidget)
-  }
-
   createWeatherWidget(currentWeather);
+  } catch {
+    showError()
+  }
 }
 
-getWeather();
-
+const form = document.querySelector("form");
+const searchInput = document.querySelector("#location-search");
+form.addEventListener("submit", () => {
+  event.preventDefault();
+  getWeather(searchInput.value);
+});
