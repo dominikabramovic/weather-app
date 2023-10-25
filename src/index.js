@@ -4,12 +4,13 @@ function createWeatherWidget(weatherInfo) {
   removeElements();
   const weatherWidget = document.createElement("div");
   weatherWidget.classList.add("weather-widget");
+  const localTime = new Date(weatherInfo.location.localtime)
   weatherWidget.innerHTML = `    
   <div class="location-info">
       <div class="city">${weatherInfo.location.name}, <span class="country">${
     weatherInfo.location.country
   }</span></div>
-      <div class="current-time">${new Date().toLocaleDateString("en-gb", {
+      <div class="current-time">${localTime.toLocaleDateString("en-gb", {
         weekday: "long",
         year: "numeric",
         month: "short",
@@ -62,6 +63,7 @@ async function getWeather(city) {
 
   try {
   const currentWeather = await getWeatherData(currentWeatherRequest);
+  console.log(currentWeather)
   createWeatherWidget(currentWeather);
   } catch {
     showError()
